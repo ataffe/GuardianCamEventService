@@ -5,6 +5,7 @@ import requests
 
 if __name__ == "__main__":
     logger = logging.getLogger('Guardian Cam Client')
+    logging.basicConfig(level=logging.DEBUG)
 
     logger.info("Sending image...")
     picam2 = Picamera2()
@@ -19,9 +20,9 @@ if __name__ == "__main__":
 
     files = {'file': ('image.jpg', buffer.tobytes(), 'image/jpeg')}
     try:
-        response = requests.post("http://localhost:9445/predict", files=files, timeout=10)
+        response = requests.post("http://10.0.0.124:9445/predict", files=files, timeout=10)
 
-        if response.status_code == 200:
+        if response.status_code == 201:
             logger.info("Image sent successfully")
         else:
             logger.error(f"Failed to send image. Status code: {response.status_code}, Response: {response.text}")
