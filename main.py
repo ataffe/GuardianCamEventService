@@ -1,27 +1,48 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
-import cv2
-import numpy as np
 import logging
+import numpy as np
+import cv2
+import yaml
+from rabbitmq_client import get_rabbitmq_connection
 
 logger = logging.getLogger("GuardianCamService")
-logging.basicConfig(level=logging.DEBUG)
-img_ctr = 0
-app = FastAPI()
 
-@app.post("/predict", status_code=201)
-async def predict(file: UploadFile = File(...)):
-    global img_ctr
-    content = await file.read()
-    logging.debug(f"Received a file size {len(content) // 1000} kb")
-    np_array = np.frombuffer(content, np.uint8)
-    img = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+def set_log_level(level_str: str):
+    logger_level = logging.INFO
+    if level_str.lower() == 'debug':
+        logger_level = logging.DEBUG
+    elif level_str.lower() == 'warning':
+        logger_level = logging.WARNING
+    elif level_str.lower() == 'error':
+        logger_level = logging.ERROR
+    elif level_str.lower() == 'critical':
+        logger_level = logging.CRITICAL
+    else:
+        logger.error('Invalid log level, defaulting to info')
+    logging.basicConfig(level=logger_level)
+
+def load_config(path: str) -> dict:
+    with open(path, "r") as f:
+        return yaml.safe_load(f)
+
+def on_message(ch, method, properties, body: bytes):
+    img = cv2.imdecode(np.frombuffer(body, np.uint8), cv2.IMREAD_COLOR)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    logger.info(f"Received image shape {img.shape}")
     if img is None:
-        raise HTTPException(status_code=400, detail="Could not decode the image.")
-    cv2.imwrite(f"test{img_ctr}.jpg", img)
-    logging.debug(f"Saved image {img_ctr}")
-    img_ctr += 1
-    return {
-        "success": True,
-        "message": f"Image shape {img.shape} successfully uploaded",
-    }
+        logger.error("Received empty image.")
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+    cv2.imwrite(f'img_received.jpg', img)
+    ch.basic_ack(delivery_tag = method.delivery_tag)
+    logger.info("Image saved.")
+
+if __name__ == '__main__':
+    config = load_config('config/config_dev.yaml')
+    set_log_level(config['logging']['level'])
+    connection, channel = get_rabbitmq_connection(config, on_message)
+    try:
+        channel.start_consuming()
+    except KeyboardInterrupt:
+        channel.stop_consuming()
+        logger.info("Worker exiting gracefully.")
+    finally:
+        connection.close()

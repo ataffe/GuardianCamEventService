@@ -1,0 +1,7 @@
+rabbitmq:
+  host: localhost
+  port: 5672
+  queue_name: image_prediction_queue
+  durable: True
+logging:
+  level: INFO
