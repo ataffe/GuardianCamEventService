@@ -11,3 +11,12 @@ and the configured event types for a user.
 
 ### System Diagram
 ![Guardian cam system diagram.](images/GuardianCam_sys_diagram.png)
+
+### Database Schema
+
+#### Rules Table
+| Column Name   | Data Type        |
+|---------------|------------------|
+| user_id       | UUID PRIMARY KEY |
+| rule          | VARCHAR(140)     |
+| camera_number | INT              |
