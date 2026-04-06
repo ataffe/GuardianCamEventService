@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 import yaml
 from rabbitmq_client import get_rabbitmq_connection
-from rules.model import GuardianCamRulesModel
+from src.rules.rules_model import GuardianCamRulesModel
 from functools import partial
 
 logger = logging.getLogger("GuardianCamService")
@@ -39,14 +39,16 @@ def on_message(ch, method, properties, body: bytes, rules_model: GuardianCamRule
         test_rule = "a hand is visible"
         if rules_model.evaluate_rule(image=img, rule=test_rule):
             cv2.imwrite('last_recieved.jpg', img)
-            logger.info("Rule triggered")
+            logger.info("Rule triggered, image saved.")
         else:
             logger.info("Rule not triggered")
     ch.basic_ack(delivery_tag = method.delivery_tag)
-    logger.info("Image saved.")
+
+
+
 
 if __name__ == '__main__':
-    config = load_config('config/config_dev.yaml')
+    config = load_config('../config/config_dev.yaml')
     set_log_level(config['logging']['level'])
     guardian_cam_rules_model = GuardianCamRulesModel("gemma-4-e2b-it")
     guardian_cam_rules_model.init()
