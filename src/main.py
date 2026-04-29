@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 import yaml
 from rabbitmq_client import get_rabbitmq_connection
-from src.rules.rules_model import GuardianCamRulesModel
+from src.ml.rules_model import GuardianCamRulesModel
 from functools import partial
 
 logger = logging.getLogger("GuardianCamService")
