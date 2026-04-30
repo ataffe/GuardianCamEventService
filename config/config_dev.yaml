@@ -6,7 +6,9 @@ rabbitmq:
 logging:
   level: INFO
 db:
-  user: alex
+  user: appuser
   host: localhost
   port: 5432
-  db_name: guardian_cam_rules
+  db_name: scoutcamservicedb
+ml:
+  gemma4_model_variation: gemma-4-e2b-it
