@@ -3,4 +3,4 @@ A scalable microservice for processing images sent from the scout camera client 
 compares images against rules defined by the user to determine if a notification should be triggered.
 
 ### System Diagram
-![Guardian cam system diagram.](images/GuardianCam_sys_diagram.png)
+![Guardian cam system diagram.](images/ScoutCamSystemDiagram_event_processor.png)
